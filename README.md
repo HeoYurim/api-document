@@ -1,2 +1,2 @@
-# apiDocument
+# api-document
 직원마다 개발하고 있는 프로젝트 별로 연동규격서를 확인할 수 있는 개발
