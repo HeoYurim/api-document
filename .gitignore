@@ -46,3 +46,8 @@ bin/
 
 ### Docker ###
 /postgres_data/
+
+# IntelliJ IDEA 관련 설정 제외
+.idea/
+
+docker-compose.yml
