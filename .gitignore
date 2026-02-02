@@ -50,4 +50,5 @@ bin/
 # IntelliJ IDEA 관련 설정 제외
 .idea/
 
-docker-compose.yml
+# 환경 변수 및 보안 설정 파일
+.env
