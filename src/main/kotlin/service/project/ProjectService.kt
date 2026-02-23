@@ -34,11 +34,26 @@ class ProjectService(
         return projects.map { ProjectRes.from(it) }
     }
 
-    // 프로젝트 단건 조회
+    @Transactional(readOnly = true)
     fun getProject(id: Long): ProjectRes {
-        val project = projectRepository.findById(id).orElseThrow {
-            CustomException(ErrorCode.PROJECT_NOT_FOUND)
-        }
+        val project = projectRepository.findById(id)
+            .orElseThrow { CustomException(ErrorCode.PROJECT_NOT_FOUND) }
         return ProjectRes.from(project)
+    }
+
+    @Transactional
+    fun updateProject(id: Long, req: ProjectReq): ProjectRes {
+        val project = projectRepository.findById(id)
+            .orElseThrow { CustomException(ErrorCode.PROJECT_NOT_FOUND) }
+        
+        project.update(req.name, req.description)
+        return ProjectRes.from(project)
+    }
+
+    @Transactional
+    fun deleteProject(id: Long) {
+        val project = projectRepository.findById(id)
+            .orElseThrow { CustomException(ErrorCode.PROJECT_NOT_FOUND) }
+        projectRepository.delete(project)
     }
 }

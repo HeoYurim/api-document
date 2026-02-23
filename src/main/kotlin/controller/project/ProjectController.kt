@@ -31,4 +31,16 @@ class ProjectController(
     fun getProject(@PathVariable id: Long): ProjectRes {
         return projectService.getProject(id)
     }
+
+    @Operation(summary = "프로젝트 수정", description = "ID로 특정 프로젝트의 정보를 수정")
+    @PutMapping("/{id}")
+    fun updateProject(@PathVariable id: Long, @RequestBody req: ProjectReq): ProjectRes {
+        return projectService.updateProject(id, req)
+    }
+
+    @Operation(summary = "프로젝트 삭제", description = "ID로 특정 프로젝트를 삭제")
+    @DeleteMapping("/{id}")
+    fun deleteProject(@PathVariable id: Long) {
+        projectService.deleteProject(id)
+    }
 }
