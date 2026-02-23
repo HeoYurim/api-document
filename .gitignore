@@ -56,3 +56,18 @@ bin/
 # 프로젝트 자료
 /postman/
 /md/
+
+### Frontend (React) ###
+api-document-ui/node_modules/
+api-document-ui/build/
+api-document-ui/.pnp
+api-document-ui/.pnp.js
+api-document-ui/coverage/
+api-document-ui/.DS_Store
+api-document-ui/.env.local
+api-document-ui/.env.development.local
+api-document-ui/.env.test.local
+api-document-ui/.env.production.local
+api-document-ui/npm-debug.log*
+api-document-ui/yarn-debug.log*
+api-document-ui/yarn-error.log*
