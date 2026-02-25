@@ -43,4 +43,10 @@ class ProjectController(
     fun deleteProject(@PathVariable id: Long) {
         projectService.deleteProject(id)
     }
+
+    @Operation(summary = "프로젝트 상태 토글", description = "ID로 특정 프로젝트의 진행 상태를 전환 (ACTIVE <-> FADEOUT)")
+    @PatchMapping("/{id}/status")
+    fun toggleProjectStatus(@PathVariable id: Long): ProjectRes {
+        return projectService.toggleProjectStatus(id)
+    }
 }

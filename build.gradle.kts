@@ -38,6 +38,9 @@ dependencies {
     // 코틀린 리플렉션 (JPA 사용 시 필수)
     implementation(kotlin("reflect"))
 
+    // Jackson Kotlin 모듈 (Data Class 직렬화/역직렬화)
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+
     // 테스트
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation(kotlin("test"))
