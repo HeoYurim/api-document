@@ -20,3 +20,8 @@ export const updateProject = async (id, projectData) => {
 export const deleteProject = async (id) => {
     await axios.delete(`${API_BASE_URL}/${id}`);
 };
+
+export const toggleProjectStatus = async (id) => {
+    const response = await axios.patch(`${API_BASE_URL}/${id}/status`);
+    return response.data;
+};

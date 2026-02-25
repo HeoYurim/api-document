@@ -46,7 +46,7 @@ class ProjectService(
         val project = projectRepository.findById(id)
             .orElseThrow { CustomException(ErrorCode.PROJECT_NOT_FOUND) }
         
-        project.update(req.name, req.description)
+        project.update(req.name, req.description, req.status)
         return ProjectRes.from(project)
     }
 
@@ -55,5 +55,13 @@ class ProjectService(
         val project = projectRepository.findById(id)
             .orElseThrow { CustomException(ErrorCode.PROJECT_NOT_FOUND) }
         projectRepository.delete(project)
+    }
+
+    @Transactional
+    fun toggleProjectStatus(id: Long): ProjectRes {
+        val project = projectRepository.findById(id)
+            .orElseThrow { CustomException(ErrorCode.PROJECT_NOT_FOUND) }
+        project.toggleStatus()
+        return ProjectRes.from(project)
     }
 }

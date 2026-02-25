@@ -5,7 +5,7 @@ import {
     Grid, Paper, InputBase, Button, Avatar, Menu, MenuItem, CssBaseline, 
     Card, CardContent, CardActions, Dialog, DialogTitle, DialogContent, 
     DialogActions, TextField, Snackbar, Alert, Chip,
-    Breadcrumbs, Link as MuiLink
+    Breadcrumbs, Link as MuiLink, Switch, FormControlLabel, FormGroup
 } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import MenuIcon from '@mui/icons-material/Menu';
@@ -26,7 +26,7 @@ import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Cancel';
 
 import { BrowserRouter, Routes, Route, useNavigate, useParams, useLocation } from 'react-router-dom';
-import { getProjects, createProject, deleteProject, updateProject } from './api';
+import { getProjects, createProject, deleteProject, updateProject, toggleProjectStatus } from './api';
 import axios from 'axios';
 
 // --- 테마 설정 (청록색 + 회색 조합) ---
@@ -215,7 +215,7 @@ function ProjectList() {
     const [projects, setProjects] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [openDialog, setOpenDialog] = useState(false);
-    const [newProject, setNewProject] = useState({ name: '', description: '', userId: 1 });
+    const [newProject, setNewProject] = useState({ name: '', description: '', userId: 1, status: 'ACTIVE' });
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
     const navigate = useNavigate();
 
@@ -242,7 +242,7 @@ function ProjectList() {
             await createProject(newProject);
             showSnackbar('프로젝트가 생성되었습니다.', 'success');
             setOpenDialog(false);
-            setNewProject({ name: '', description: '', userId: 1 });
+            setNewProject({ name: '', description: '', userId: 1, status: 'ACTIVE' });
             loadProjects();
         } catch (error) {
             console.error('Failed to create project:', error);
@@ -261,6 +261,17 @@ function ProjectList() {
                 console.error('Failed to delete project:', error);
                 showSnackbar('프로젝트 삭제에 실패했습니다.', 'error');
             }
+        }
+    };
+
+    const handleToggleStatus = async (id, e) => {
+        e.stopPropagation();
+        try {
+            await toggleProjectStatus(id);
+            loadProjects();
+        } catch (error) {
+            console.error('Failed to toggle project status:', error);
+            showSnackbar('상태 변경에 실패했습니다.', 'error');
         }
     };
 
@@ -320,11 +331,18 @@ function ProjectList() {
                             onClick={() => navigate(`/projects/${project.id}`)}
                         >
                             <CardContent sx={{ flexGrow: 1 }}>
-                                <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={1}>
+                                <Box display="flex" flexDirection="column" alignItems="flex-start" mb={1}>
+                                    <Chip 
+                                        label={project.status === 'FADEOUT' ? 'Fadeout' : 'Active'} 
+                                        size="small" 
+                                        color={project.status === 'FADEOUT' ? 'default' : 'success'} 
+                                        variant={project.status === 'FADEOUT' ? 'filled' : 'outlined'} 
+                                        onClick={(e) => handleToggleStatus(project.id, e)}
+                                        sx={{ mb: 1, cursor: 'pointer' }}
+                                    />
                                     <Typography variant="h6" component="div" fontWeight="bold" noWrap>
                                         {project.name}
                                     </Typography>
-                                    <Chip label="Active" size="small" color="success" variant="outlined" />
                                 </Box>
                                 <Typography sx={{ mb: 2, fontSize: '0.875rem' }} color="text.secondary">
                                     {project.createdAt.split(' ')[0]} 생성
@@ -370,7 +388,20 @@ function ProjectList() {
                         variant="outlined"
                         value={newProject.description}
                         onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
+                        sx={{ mb: 2 }}
                     />
+                    <FormGroup>
+                        <FormControlLabel 
+                            control={
+                                <Switch 
+                                    checked={newProject.status === 'ACTIVE'} 
+                                    onChange={(e) => setNewProject({ ...newProject, status: e.target.checked ? 'ACTIVE' : 'FADEOUT' })} 
+                                    color="success"
+                                />
+                            } 
+                            label={`상태: ${newProject.status === 'ACTIVE' ? 'Active' : 'Fadeout'}`} 
+                        />
+                    </FormGroup>
                 </DialogContent>
                 <DialogActions sx={{ p: 3 }}>
                     <Button onClick={() => setOpenDialog(false)} color="inherit">취소</Button>
@@ -395,14 +426,14 @@ function ProjectDetail() {
     const [project, setProject] = useState(null);
     const [loading, setLoading] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
-    const [editData, setEditData] = useState({ name: '', description: '' });
+    const [editData, setEditData] = useState({ name: '', description: '', status: 'ACTIVE' });
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
     const fetchProject = useCallback(async () => {
         try {
             const response = await axios.get(`http://localhost:8080/projects/${id}`);
             setProject(response.data);
-            setEditData({ name: response.data.name, description: response.data.description || '' });
+            setEditData({ name: response.data.name, description: response.data.description || '', status: response.data.status });
         } catch (error) {
             console.error('Failed to fetch project detail:', error);
             showSnackbar('프로젝트 정보를 불러오지 못했습니다.', 'error');
@@ -444,7 +475,7 @@ function ProjectDetail() {
     };
 
     const handleCancel = () => {
-        setEditData({ name: project.name, description: project.description || '' });
+        setEditData({ name: project.name, description: project.description || '', status: project.status });
         setIsEditing(false);
     };
 
@@ -473,15 +504,34 @@ function ProjectDetail() {
             <Paper elevation={0} sx={{ p: 4, borderRadius: 3 }}>
                 <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
                     {isEditing ? (
-                         <TextField 
-                            label="프로젝트 이름" 
-                            value={editData.name} 
-                            onChange={(e) => setEditData({...editData, name: e.target.value})}
-                            fullWidth
-                            sx={{ mr: 2 }}
-                         />
+                        <Box display="flex" alignItems="center" flexGrow={1} mr={2}>
+                             <TextField 
+                                label="프로젝트 이름" 
+                                value={editData.name} 
+                                onChange={(e) => setEditData({...editData, name: e.target.value})}
+                                fullWidth
+                                sx={{ mr: 2 }}
+                             />
+                             <FormControlLabel 
+                                control={
+                                    <Switch 
+                                        checked={editData.status === 'ACTIVE'} 
+                                        onChange={(e) => setEditData({ ...editData, status: e.target.checked ? 'ACTIVE' : 'FADEOUT' })} 
+                                        color="success"
+                                    />
+                                } 
+                                label={editData.status === 'ACTIVE' ? 'Active' : 'Fadeout'} 
+                             />
+                        </Box>
                     ) : (
                         <Box display="flex" alignItems="center">
+                             <Chip 
+                                label={project.status === 'FADEOUT' ? 'Fadeout' : 'Active'} 
+                                size="small" 
+                                color={project.status === 'FADEOUT' ? 'default' : 'success'} 
+                                variant={project.status === 'FADEOUT' ? 'filled' : 'outlined'} 
+                                sx={{ mr: 1 }}
+                             />
                              <Typography variant="h4" fontWeight="bold" component="h1" sx={{ mr: 2 }}>
                                 {project.name}
                             </Typography>

@@ -17,11 +17,19 @@ class Project(
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "creator_id")
-    var creator: User
+    var creator: User,
+
+    @Column(nullable = false, length = 20)
+    var status: String = "ACTIVE"
 ) : BaseTimeEntity() {
 
-    fun update(name: String, description: String?) {
+    fun update(name: String, description: String?, status: String) {
         this.name = name
         this.description = description
+        this.status = status
+    }
+
+    fun toggleStatus() {
+        this.status = if (this.status == "ACTIVE") "FADEOUT" else "ACTIVE"
     }
 }
